@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#6cccbd">
-    <meta name="description" content="Tasbih Tally Counter - Digital dhikr counter with mechanical flip display">
-    <title>Tasbih Tally Counter v3.0</title>
+    <meta name="description" content="Premium Tasbih Counter - Beautiful digital dhikr counter with AI insights, cloud sync, and advanced features">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Tasbih Counter v4.0</title>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -14,6 +16,9 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/7113/7113227.png">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/7113/7113227.png">
     
+    <!-- Splash Screen -->
+    <link rel="apple-touch-startup-image" href="https://cdn-icons-png.flaticon.com/512/7113/7113227.png">
+    
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -21,46 +26,115 @@
     <!-- Theme Circle Animation -->
     <div class="theme-circle" id="themeCircle"></div>
     
+    <!-- Splash Screen -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/7113/7113227.png" alt="Logo" class="splash-logo">
+            <h1 class="splash-title">Tasbih Counter</h1>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+    
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <line x1="12" y1="20" x2="12.01" y2="20"/>
+        </svg>
+        <span>Offline Mode</span>
+    </div>
+    
+    <!-- Install Banner -->
+    <div class="install-banner" id="installBanner">
+        <div class="install-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/7113/7113227.png" alt="Logo" class="install-icon">
+            <div class="install-text">
+                <h3>Install Tasbih Counter</h3>
+                <p>Get quick access from your home screen</p>
+            </div>
+            <button class="install-btn-primary" id="installBannerBtn">Install</button>
+            <button class="install-close" id="installBannerClose">×</button>
+        </div>
+    </div>
+    
     <!-- Top Navigation Bar -->
-    <nav class="top-nav">
-        <button class="nav-btn" id="menuBtn" onclick="event.stopPropagation()">
+    <nav class="top-nav glass">
+        <button class="nav-btn glass" id="menuBtn" onclick="event.stopPropagation()" aria-label="Menu">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
         </button>
         
-        <h1 class="app-title">Tasbih Counter</h1>
+        <h1 class="app-title gradient-text">Tasbih Counter</h1>
         
-        <button class="nav-btn" id="themeToggle" onclick="event.stopPropagation()">
-            <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-            <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-            </svg>
-        </button>
+        <div class="nav-actions">
+            <button class="nav-btn glass" id="themeBtn" onclick="event.stopPropagation()" aria-label="Theme">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                </svg>
+            </button>
+            
+            <button class="nav-btn glass theme-selector" id="themeToggle" onclick="event.stopPropagation()" aria-label="Theme Toggle">
+                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
     </nav>
     
+    <!-- Theme Selector Popup -->
+    <div class="theme-popup" id="themePopup">
+        <div class="theme-popup-content glass">
+            <h3>Choose Theme</h3>
+            <div class="theme-grid">
+                <button class="theme-option active" data-theme="ocean">
+                    <div class="theme-preview ocean-preview"></div>
+                    <span>Ocean</span>
+                </button>
+                <button class="theme-option" data-theme="sunset">
+                    <div class="theme-preview sunset-preview"></div>
+                    <span>Sunset</span>
+                </button>
+                <button class="theme-option" data-theme="forest">
+                    <div class="theme-preview forest-preview"></div>
+                    <span>Forest</span>
+                </button>
+                <button class="theme-option" data-theme="midnight">
+                    <div class="theme-preview midnight-preview"></div>
+                    <span>Midnight</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Side Menu -->
-    <div class="side-menu" id="sideMenu">
+    <div class="side-menu glass" id="sideMenu">
         <div class="menu-header">
-            <img src="https://cdn-icons-png.flaticon.com/512/7113/7113227.png" alt="Logo" class="menu-logo">
-            <h2>Menu</h2>
-            <button class="close-menu" id="closeMenu">×</button>
+            <img src="https://cdn-icons-png.flaticon.com/512/7113/7113227.png" alt="Logo" class="menu-logo pulse">
+            <div class="menu-title-section">
+                <h2>Menu</h2>
+                <p class="menu-subtitle">v4.0 Premium</p>
+            </div>
+            <button class="close-menu glass" id="closeMenu" aria-label="Close Menu">×</button>
         </div>
         
         <div class="menu-content">
-            <button class="menu-item active" data-view="counter">
+            <button class="menu-item active bounce-in" data-view="counter">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
                 <span>Counter</span>
             </button>
             
-            <button class="menu-item" data-view="counters">
+            <button class="menu-item bounce-in" data-view="counters" style="animation-delay: 0.05s">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                     <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -68,14 +142,14 @@
                 <span>My Counters</span>
             </button>
             
-            <button class="menu-item" data-view="history">
+            <button class="menu-item bounce-in" data-view="history" style="animation-delay: 0.1s">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 3v5h5M3.05 13A9 9 0 1 0 3 8"/>
                 </svg>
                 <span>History</span>
             </button>
             
-            <button class="menu-item" data-view="stats">
+            <button class="menu-item bounce-in" data-view="stats" style="animation-delay: 0.15s">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
                     <line x1="6" y1="20" x2="6" y2="14"/>
@@ -83,7 +157,23 @@
                 <span>Statistics</span>
             </button>
             
-            <button class="menu-item" data-view="settings">
+            <button class="menu-item bounce-in" data-view="insights" style="animation-delay: 0.2s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    <path d="M2 12h20"/>
+                </svg>
+                <span>AI Insights</span>
+                <span class="badge">New</span>
+            </button>
+            
+            <button class="menu-item bounce-in" data-view="achievements" style="animation-delay: 0.25s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                </svg>
+                <span>Achievements</span>
+            </button>
+            
+            <button class="menu-item bounce-in" data-view="settings" style="animation-delay: 0.3s">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/>
                     <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24m0-16.97-4.24 4.24m-5.66 5.66L4.93 19.07"/>
@@ -91,19 +181,31 @@
                 <span>Settings</span>
             </button>
             
-            <button class="menu-item" data-view="names">
+            <button class="menu-item bounce-in" data-view="names" style="animation-delay: 0.35s">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                 </svg>
-                <span>99 Names of Allah</span>
+                <span>99 Names</span>
             </button>
             
-            <button class="menu-item" data-view="qibla">
+            <button class="menu-item bounce-in" data-view="qibla" style="animation-delay: 0.4s">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
                 </svg>
                 <span>Qibla Finder</span>
             </button>
+        </div>
+        
+        <div class="menu-footer">
+            <div class="streak-display glass">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                </svg>
+                <div>
+                    <span class="streak-number" id="streakNumber">0</span>
+                    <span class="streak-label">Day Streak</span>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -115,45 +217,56 @@
         
         <!-- Counter View -->
         <div class="view active" id="counterView">
-            <div class="counter-card">
-                <div class="counter-label" id="counterLabel">General Counter</div>
+            <div class="counter-card glass fade-in">
+                <div class="counter-header">
+                    <div class="counter-label gradient-text" id="counterLabel">General Counter</div>
+                    <button class="counter-more" id="counterMore">⋮</button>
+                </div>
                 
-                <img src="https://cdn-icons-png.flaticon.com/512/7113/7113227.png" alt="Tasbih Logo" class="logo">
+                <img src="https://cdn-icons-png.flaticon.com/512/7113/7113227.png" alt="Logo" class="logo pulse">
                 
-                <!-- Mechanical Counter Display -->
-                <div class="mechanical-counter" id="mechanicalCounter">
-                    <div class="digit-slot" data-position="3">
-                        <div class="digit-flipper">
-                            <div class="digit-top">0</div>
-                            <div class="digit-bottom">0</div>
+                <!-- Circular Progress Ring -->
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" width="280" height="280">
+                        <circle class="progress-ring-circle-bg" cx="140" cy="140" r="130"/>
+                        <circle class="progress-ring-circle" cx="140" cy="140" r="130" id="progressRing"/>
+                    </svg>
+                    
+                    <!-- Mechanical Counter Display -->
+                    <div class="mechanical-counter neumorphic" id="mechanicalCounter">
+                        <div class="digit-slot" data-position="3">
+                            <div class="digit-flipper">
+                                <div class="digit-top">0</div>
+                                <div class="digit-bottom">0</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="digit-slot" data-position="2">
-                        <div class="digit-flipper">
-                            <div class="digit-top">0</div>
-                            <div class="digit-bottom">0</div>
+                        <div class="digit-slot" data-position="2">
+                            <div class="digit-flipper">
+                                <div class="digit-top">0</div>
+                                <div class="digit-bottom">0</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="digit-slot" data-position="1">
-                        <div class="digit-flipper">
-                            <div class="digit-top">0</div>
-                            <div class="digit-bottom">0</div>
+                        <div class="digit-slot" data-position="1">
+                            <div class="digit-flipper">
+                                <div class="digit-top">0</div>
+                                <div class="digit-bottom">0</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="digit-slot" data-position="0">
-                        <div class="digit-flipper">
-                            <div class="digit-top">0</div>
-                            <div class="digit-bottom">0</div>
+                        <div class="digit-slot" data-position="0">
+                            <div class="digit-flipper">
+                                <div class="digit-top">0</div>
+                                <div class="digit-bottom">0</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="lap-counter" id="lapCounter">
+                <div class="lap-counter glass">
                     <span class="lap-text">Lap</span>
                     <span class="lap-value" id="lapValue">0</span>
                 </div>
                 
-                <select class="tasbih-select" id="tasbihSelect" onclick="event.stopPropagation()">
+                <select class="tasbih-select glass" id="tasbihSelect" onclick="event.stopPropagation()">
                     <option value="Subhanallah">سُبْحَانَ اللَّهِ - Subhanallah</option>
                     <option value="Alhamdulillah">الْحَمْدُ لِلَّهِ - Alhamdulillah</option>
                     <option value="Allahu Akbar">اللَّهُ أَكْبَرُ - Allahu Akbar</option>
@@ -166,60 +279,93 @@
                     <option value="Allahumma salli">اللَّهُمَّ صَلِّ - Allahumma salli</option>
                     <option value="Hasbi Allahu">حَسْبِيَ اللَّهُ - Hasbi Allahu</option>
                     <option value="La ilaha illa anta">لَا إِلَٰهَ إِلَّا أَنْتَ - La ilaha illa anta</option>
-                    <option value="Custom">Custom Dhikr</option>
+                    <option value="Custom">✨ Custom Dhikr</option>
                 </select>
                 
-                <input type="text" class="custom-dhikr" id="customDhikr" placeholder="Enter your custom dhikr" style="display: none;">
+                <input type="text" class="custom-dhikr glass" id="customDhikr" placeholder="Enter your custom dhikr..." style="display: none;">
                 
                 <div class="target-section" onclick="event.stopPropagation()">
                     <label class="target-label">Target:</label>
                     <div class="target-buttons">
-                        <button class="target-btn active" data-target="11">11</button>
-                        <button class="target-btn" data-target="33">33</button>
-                        <button class="target-btn" data-target="66">66</button>
-                        <button class="target-btn" data-target="99">99</button>
-                        <button class="target-btn" data-target="custom">Custom</button>
+                        <button class="target-btn glass active" data-target="11">11</button>
+                        <button class="target-btn glass" data-target="33">33</button>
+                        <button class="target-btn glass" data-target="66">66</button>
+                        <button class="target-btn glass" data-target="99">99</button>
+                        <button class="target-btn glass" data-target="custom">Custom</button>
                     </div>
-                    <input type="number" class="custom-target" id="customTarget" placeholder="Enter custom target" style="display: none;">
+                    <input type="number" class="custom-target glass" id="customTarget" placeholder="Enter custom target" style="display: none;">
                 </div>
                 
                 <div class="stats-section" onclick="event.stopPropagation()">
-                    <div class="stat-item">
-                        <span class="stat-label">Progress</span>
-                        <span class="stat-value animated-text" id="progressStat">0/11</span>
+                    <div class="stat-item glass scale-in">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Progress</span>
+                            <span class="stat-value animated-text" id="progressStat">0/11</span>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Avg Speed</span>
-                        <span class="stat-value animated-text" id="speedStat">0/min</span>
+                    <div class="stat-item glass scale-in" style="animation-delay: 0.1s">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Avg Speed</span>
+                            <span class="stat-value animated-text" id="speedStat">0/min</span>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Time</span>
-                        <span class="stat-value animated-text" id="timeStat">00:00</span>
+                    <div class="stat-item glass scale-in" style="animation-delay: 0.2s">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Time</span>
+                            <span class="stat-value animated-text" id="timeStat">00:00</span>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">ETC</span>
-                        <span class="stat-value animated-text" id="etcStat">--:--</span>
+                    <div class="stat-item glass scale-in" style="animation-delay: 0.3s">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <span class="stat-label">ETC</span>
+                            <span class="stat-value animated-text" id="etcStat">--:--</span>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="controls" onclick="event.stopPropagation()">
-                    <button class="control-btn" id="minusBtn" aria-label="Subtract">
+                    <button class="control-btn glass spring" id="minusBtn" aria-label="Subtract">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M5 12l14 0"/>
                         </svg>
                     </button>
                     
-                    <button class="control-btn primary" id="saveSessionBtn" aria-label="Save Session">
+                    <button class="control-btn glass primary spring" id="saveSessionBtn" aria-label="Save Session">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                             <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
                         </svg>
                     </button>
                     
-                    <button class="control-btn" id="resetBtn" aria-label="Reset">
+                    <button class="control-btn glass spring" id="resetBtn" aria-label="Reset">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/>
                             <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn glass" id="shareBtn" title="Share Progress">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                    </button>
+                    <button class="quick-action-btn glass" id="soundBtn" title="Sound Toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                        </svg>
+                    </button>
+                    <button class="quick-action-btn glass" id="vibrateBtn" title="Vibration Toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
                         </svg>
                     </button>
                 </div>
@@ -229,8 +375,8 @@
         <!-- My Counters View -->
         <div class="view" id="countersView">
             <div class="view-header">
-                <h2>My Counters</h2>
-                <button class="add-counter-btn" id="addCounterBtn">
+                <h2 class="gradient-text">My Counters</h2>
+                <button class="add-counter-btn glass spring" id="addCounterBtn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -243,8 +389,8 @@
         <!-- History View -->
         <div class="view" id="historyView">
             <div class="view-header">
-                <h2>History</h2>
-                <button class="export-btn" id="exportBtn">
+                <h2 class="gradient-text">History</h2>
+                <button class="export-btn glass spring" id="exportBtn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/>
                         <line x1="12" y1="15" x2="12" y2="3"/>
@@ -258,75 +404,94 @@
         <!-- Statistics View -->
         <div class="view" id="statsView">
             <div class="view-header">
-                <h2>Statistics</h2>
+                <h2 class="gradient-text">Statistics</h2>
             </div>
             <div class="stats-content" id="statsContent"></div>
+        </div>
+        
+        <!-- AI Insights View -->
+        <div class="view" id="insightsView">
+            <div class="view-header">
+                <h2 class="gradient-text">AI Insights</h2>
+                <span class="badge-new">Beta</span>
+            </div>
+            <div class="insights-content" id="insightsContent"></div>
+        </div>
+        
+        <!-- Achievements View -->
+        <div class="view" id="achievementsView">
+            <div class="view-header">
+                <h2 class="gradient-text">Achievements</h2>
+            </div>
+            <div class="achievements-grid" id="achievementsGrid"></div>
         </div>
         
         <!-- Settings View -->
         <div class="view" id="settingsView">
             <div class="view-header">
-                <h2>Settings</h2>
+                <h2 class="gradient-text">Settings</h2>
             </div>
             <div class="settings-content">
-                <div class="setting-group">
+                <!-- Settings content here (same as v3.0 but with glass class) -->
+                <div class="setting-group glass">
                     <h3>Feedback</h3>
                     <div class="setting-item">
                         <label>
-                            <input type="checkbox" id="vibrationToggle" checked>
                             <span>Vibration Feedback</span>
+                            <input type="checkbox" id="vibrationToggle" checked>
                         </label>
                     </div>
                     <div class="setting-item">
                         <label>
-                            <input type="checkbox" id="soundToggle">
                             <span>Sound Effects</span>
+                            <input type="checkbox" id="soundToggle">
                         </label>
                     </div>
                     <div class="setting-item">
                         <label>
+                            <span>Milestone Vibration</span>
                             <input type="checkbox" id="milestoneVibeToggle" checked>
-                            <span>Milestone Vibration (33, 66, 99)</span>
                         </label>
                     </div>
                 </div>
                 
-                <div class="setting-group">
+                <div class="setting-group glass">
                     <h3>Notifications</h3>
                     <div class="setting-item">
                         <label>
-                            <input type="checkbox" id="notificationsToggle">
                             <span>Enable Notifications</span>
+                            <input type="checkbox" id="notificationsToggle">
                         </label>
                     </div>
                     <div class="setting-item">
                         <label>
+                            <span>Target Completion</span>
                             <input type="checkbox" id="targetNotifyToggle">
-                            <span>Notify on Target Complete</span>
                         </label>
                     </div>
-                    <button class="settings-btn" id="requestNotificationBtn">Request Permission</button>
+                    <button class="settings-btn glass" id="requestNotificationBtn">Request Permission</button>
                 </div>
                 
-                <div class="setting-group">
+                <div class="setting-group glass">
                     <h3>Display</h3>
                     <div class="setting-item">
                         <label>
-                            <input type="checkbox" id="fullscreenToggle">
                             <span>Fullscreen Mode</span>
+                            <input type="checkbox" id="fullscreenToggle">
                         </label>
                     </div>
                 </div>
                 
-                <div class="setting-group">
-                    <h3>Data</h3>
-                    <button class="settings-btn" id="installBtn" style="display: none;">Install App</button>
-                    <button class="settings-btn danger" id="clearDataBtn">Clear All Data</button>
+                <div class="setting-group glass">
+                    <h3>Data & Sync</h3>
+                    <button class="settings-btn glass" id="cloudSyncBtn">☁️ Enable Cloud Sync</button>
+                    <button class="settings-btn glass" id="installBtn" style="display: none;">📱 Install App</button>
+                    <button class="settings-btn glass danger" id="clearDataBtn">🗑️ Clear All Data</button>
                 </div>
                 
-                <div class="setting-group">
+                <div class="setting-group glass">
                     <h3>About</h3>
-                    <p class="version-info">Version 3.0</p>
+                    <p class="version-info">Version 4.0 Premium</p>
                     <a href="https://novussolutions.vercel.app" target="_blank" class="branding-link">
                         A product by <img src="https://i.postimg.cc/66mGJsTK/image.png" alt="NOVUS Solutions" class="brand-logo-small">
                     </a>
@@ -334,50 +499,55 @@
             </div>
         </div>
         
-        <!-- 99 Names of Allah View -->
+        <!-- 99 Names View -->
         <div class="view" id="namesView">
             <div class="view-header">
-                <h2>99 Names of Allah</h2>
+                <h2 class="gradient-text">99 Names of Allah</h2>
             </div>
             <div class="names-list" id="namesList"></div>
         </div>
         
-        <!-- Qibla Finder View -->
+        <!-- Qibla View -->
         <div class="view" id="qiblaView">
             <div class="view-header">
-                <h2>Qibla Finder</h2>
+                <h2 class="gradient-text">Qibla Finder</h2>
             </div>
             <div class="qibla-content">
-                <div class="compass-container">
-                    <div class="compass" id="compass">
+                <div class="compass-container glass">
+                    <div class="compass neumorphic" id="compass">
                         <div class="compass-needle" id="compassNeedle"></div>
                         <div class="compass-direction">N</div>
                     </div>
                     <div class="qibla-info" id="qiblaInfo">
                         <p>Enable location to find Qibla direction</p>
-                        <button class="settings-btn" id="enableLocationBtn">Enable Location</button>
+                        <button class="settings-btn glass" id="enableLocationBtn">Enable Location</button>
                     </div>
                 </div>
             </div>
         </div>
-        
     </div>
     
     <!-- Confirmation Modal -->
     <div class="modal" id="confirmModal">
-        <div class="modal-content">
+        <div class="modal-content glass">
             <h3 id="modalTitle">Confirm Action</h3>
             <p id="modalMessage">Are you sure?</p>
             <div class="modal-actions">
-                <button class="modal-btn cancel" id="modalCancel">Cancel</button>
-                <button class="modal-btn confirm" id="modalConfirm">Confirm</button>
+                <button class="modal-btn cancel glass" id="modalCancel">Cancel</button>
+                <button class="modal-btn confirm primary" id="modalConfirm">Confirm</button>
             </div>
         </div>
     </div>
     
     <!-- Celebration Animation -->
-    <div class="celebration" id="celebration">
+    <div class="celebration gradient-bg" id="celebration">
+        <div class="celebration-confetti"></div>
         <div class="celebration-text">🎉 Target Reached! 🎉</div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
     </div>
     
     <!-- Scripts -->
@@ -387,7 +557,7 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker registration failed'));
+                .catch(err => console.log('SW registration failed'));
         }
     </script>
 </body>
