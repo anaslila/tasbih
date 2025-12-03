@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="Tasbih">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <title>Tasbih Counter v9.1</title>
+    <title>Tasbih Counter v9.1.1</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,7 +29,7 @@
         <!-- Header -->
         <header class="header">
             <h1 class="app-title">TASBIH</h1>
-            <div class="subtitle">Digital Counter v9.1</div>
+            <div class="subtitle">Digital Counter v9.1.1</div>
         </header>
         
         <!-- Counter Section -->
@@ -119,31 +119,32 @@
             
         </div>
         
-        <!-- Target Selector (Morphing Button) -->
+        <!-- Target Selector (Compact Button) -->
         <div class="target-section">
             <button class="target-btn" id="targetBtn">
-                <span class="target-content" id="targetContent">
-                    <span class="target-label">TARGET</span>
-                    <span class="target-value" id="targetValue">33</span>
-                </span>
-                
-                <!-- Target Menu (Hidden, appears on morph) -->
-                <div class="target-menu" id="targetMenu">
-                    <div class="target-menu-header">
-                        <h3>Select Target</h3>
-                    </div>
-                    <div class="target-options">
-                        <button class="target-chip" data-target="33">33</button>
-                        <button class="target-chip" data-target="99">99</button>
-                        <button class="target-chip" data-target="100">100</button>
-                        <button class="target-chip" data-target="1000">1000</button>
-                    </div>
-                    <div class="custom-target-wrapper">
-                        <input type="number" class="custom-target-input" id="customInput" placeholder="Custom" min="1" max="9999">
-                        <button class="set-btn" id="setBtn">Set</button>
-                    </div>
-                </div>
+                <span class="target-label">TARGET</span>
+                <span class="target-value" id="targetValue">33</span>
             </button>
+        </div>
+        
+        <!-- Target Menu (Separate Morphing Box) -->
+        <div class="target-menu-overlay" id="targetMenuOverlay">
+            <div class="target-menu-box" id="targetMenuBox">
+                <div class="target-menu-header">
+                    <h3>Select Target</h3>
+                    <button class="target-close-btn" id="targetCloseBtn">×</button>
+                </div>
+                <div class="target-options">
+                    <button class="target-chip" data-target="33">33</button>
+                    <button class="target-chip" data-target="99">99</button>
+                    <button class="target-chip" data-target="100">100</button>
+                    <button class="target-chip" data-target="1000">1000</button>
+                </div>
+                <div class="custom-target-wrapper">
+                    <input type="number" class="custom-target-input" id="customInput" placeholder="Custom" min="1" max="9999">
+                    <button class="set-btn" id="setBtn">Set</button>
+                </div>
+            </div>
         </div>
         
         <!-- Control Buttons -->
@@ -216,7 +217,7 @@
         
     </div>
     
-    <!-- Reset Confirmation Popup (Premium Animation) -->
+    <!-- Reset Confirmation Popup -->
     <div class="popup-overlay" id="resetPopup">
         <div class="popup-backdrop"></div>
         <div class="popup-card">

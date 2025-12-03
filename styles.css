@@ -180,17 +180,18 @@ body {
 }
 
 /* ============================================
-   TARGET SECTION - MORPHING BUTTON ANIMATION
+   TARGET SECTION - COMPACT BUTTON
    ============================================ */
 .target-section {
     position: relative;
     margin-bottom: 30px;
-    z-index: 100;
+    z-index: 10;
 }
 
 .target-btn {
-    position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 14px 28px;
     background: var(--bg-card);
     backdrop-filter: blur(20px);
@@ -199,43 +200,11 @@ body {
     color: var(--text-primary);
     cursor: pointer;
     box-shadow: var(--shadow-soft);
-    overflow: hidden;
-    
-    /* Morphing animation properties */
-    width: auto;
-    min-width: 140px;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Touch press effect */
-.target-btn:active:not(.expanded) {
+.target-btn:active {
     transform: scale(0.95);
-}
-
-/* Expanded state - morphs into rectangle */
-.target-btn.expanded {
-    width: 90vw;
-    max-width: 380px;
-    min-height: 320px;
-    padding: 24px;
-    border-radius: 28px;
-    background: rgba(18, 18, 18, 0.98);
-    transform: translateY(-10px);
-}
-
-/* Target Content (compact view) */
-.target-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    justify-content: center;
-    opacity: 1;
-    transition: opacity 0.2s ease;
-}
-
-.target-btn.expanded .target-content {
-    opacity: 0;
-    pointer-events: none;
 }
 
 .target-label {
@@ -251,32 +220,79 @@ body {
     color: var(--primary);
 }
 
-/* Target Menu (expanded view) */
-.target-menu {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+/* ============================================
+   TARGET MENU - MORPHING OVERLAY BOX
+   ============================================ */
+.target-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease 0.1s;
-    padding: 24px;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
 }
 
-.target-btn.expanded .target-menu {
+.target-menu-overlay.active {
     opacity: 1;
     pointer-events: auto;
 }
 
+.target-menu-box {
+    width: 90%;
+    max-width: 380px;
+    background: rgba(18, 18, 18, 0.98);
+    backdrop-filter: blur(40px);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.9);
+    
+    /* Start state: small and below */
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    
+    /* Premium spring animation */
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.target-menu-overlay.active .target-menu-box {
+    /* End state: normal size, float up */
+    transform: scale(1) translateY(-10px);
+    opacity: 1;
+}
+
 .target-menu-header {
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
 .target-menu-header h3 {
     font-size: 18px;
     font-weight: 800;
-    text-align: center;
+}
+
+.target-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--bg-card);
+    border-radius: 50%;
+    color: var(--text-primary);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.target-close-btn:active {
+    transform: scale(0.9);
 }
 
 .target-options {
@@ -536,7 +552,6 @@ body {
     pointer-events: auto;
 }
 
-/* Backdrop with soft dim */
 .popup-backdrop {
     position: absolute;
     inset: 0;
@@ -544,7 +559,6 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* Popup Card - Premium Animation */
 .popup-card {
     position: relative;
     width: 90%;
@@ -555,17 +569,12 @@ body {
     border-radius: 32px;
     padding: 36px 28px;
     box-shadow: 0 20px 70px rgba(0, 0, 0, 0.9);
-    
-    /* Start state: 85% scale, slightly below */
     transform: scale(0.85) translateY(20px);
     opacity: 0;
-    
-    /* Premium spring animation: 200ms duration */
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .popup-overlay.active .popup-card {
-    /* End state: 100% scale, float up */
     transform: scale(1) translateY(-6px);
     opacity: 1;
 }
@@ -610,8 +619,6 @@ body {
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    
-    /* Buttons fade in after card appears */
     opacity: 0;
     transform: translateY(10px);
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -622,7 +629,6 @@ body {
     transform: translateY(0);
 }
 
-/* Stagger animation for buttons */
 .popup-overlay.active .popup-btn-no {
     transition-delay: 0.1s;
 }

@@ -9,9 +9,8 @@ let target = 33;
 let firstCountTime = null;
 let timestamps = [];
 let statsInterval = null;
-let isTargetOpen = false;
 
-const STORAGE_KEY = 'tasbih_v91';
+const STORAGE_KEY = 'tasbih_v911';
 
 // ============================================
 // DOM ELEMENTS
@@ -26,8 +25,9 @@ const digitContainers = [
 const progressRing = document.getElementById('progressRing');
 const targetBtn = document.getElementById('targetBtn');
 const targetValue = document.getElementById('targetValue');
-const targetContent = document.getElementById('targetContent');
-const targetMenu = document.getElementById('targetMenu');
+const targetMenuOverlay = document.getElementById('targetMenuOverlay');
+const targetMenuBox = document.getElementById('targetMenuBox');
+const targetCloseBtn = document.getElementById('targetCloseBtn');
 const customInput = document.getElementById('customInput');
 const setBtn = document.getElementById('setBtn');
 const plusBtn = document.getElementById('plusBtn');
@@ -58,7 +58,7 @@ updateStats();
 // Start stats interval - updates every second
 statsInterval = setInterval(updateStats, 1000);
 
-console.log('✅ Tasbih v9.1 LOADED - Premium animations active');
+console.log('✅ Tasbih v9.1.1 LOADED - Fixed target menu + date format');
 console.log('📊 State:', { counter, target, firstCountTime });
 
 // ============================================
@@ -101,7 +101,7 @@ if (plusBtn) {
         if (counter === 0) {
             firstCountTime = now;
             timestamps = [now];
-            console.log('🆕 Session started:', formatTime12Hour(new Date(now)));
+            console.log('🆕 Session started:', formatDateTimeFull(new Date(now)));
         } else {
             timestamps.push(now);
         }
@@ -150,7 +150,7 @@ if (minusBtn) {
 
 // ============================================
 // 🔥 FLAGSHIP FEATURE: STATISTICS
-// TIME, SPEED, ETC - ALL WITH AM/PM FORMAT
+// TIME, SPEED, ETC - ALL WITH PROPER DATE FORMAT
 // ============================================
 function updateStats() {
     if (counter > 0 && firstCountTime) {
@@ -166,10 +166,10 @@ function updateStats() {
         
         if (timeValue) timeValue.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
         
-        // Time detail - "Started at 6:52 PM"
+        // Time detail - "Started at 03-Dec-25, 6:52 PM"
         if (timeDetail) {
             const startDate = new Date(firstCountTime);
-            timeDetail.textContent = 'Started at ' + formatTime12Hour(startDate);
+            timeDetail.textContent = 'Started at ' + formatDateTimeFull(startDate);
         }
         
         // ============================================
@@ -190,10 +190,10 @@ function updateStats() {
             // Format ETC time
             if (etcValue) etcValue.textContent = formatETC(etcMs);
             
-            // Calculate completion time - "Might end at 7:15 PM"
+            // Calculate completion time - "Might end at 04-Dec-25, 2:15 AM"
             if (etcDetail) {
                 const completionDate = new Date(now + etcMs);
-                etcDetail.textContent = 'Might end at ' + formatTime12Hour(completionDate);
+                etcDetail.textContent = 'Might end at ' + formatDateTimeFull(completionDate);
             }
         } else {
             if (etcValue) etcValue.textContent = 'Done!';
@@ -210,39 +210,38 @@ function updateStats() {
 }
 
 // ============================================
-// TARGET SELECTION - MORPHING ANIMATION
+// TARGET MENU - OPEN/CLOSE
 // ============================================
 if (targetBtn) {
     targetBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        
-        if (!isTargetOpen) {
-            // Open - morph to rectangle
-            isTargetOpen = true;
-            targetBtn.classList.add('expanded');
-            
-            // Close when clicking outside
-            setTimeout(function() {
-                document.addEventListener('click', closeTargetOnOutsideClick);
-            }, 100);
-        } else {
-            // Close
-            closeTarget();
+        openTargetMenu();
+    });
+}
+
+if (targetCloseBtn) {
+    targetCloseBtn.addEventListener('click', function() {
+        closeTargetMenu();
+    });
+}
+
+if (targetMenuOverlay) {
+    targetMenuOverlay.addEventListener('click', function(e) {
+        if (e.target === targetMenuOverlay) {
+            closeTargetMenu();
         }
     });
 }
 
-function closeTargetOnOutsideClick(e) {
-    if (targetBtn && !targetBtn.contains(e.target)) {
-        closeTarget();
+function openTargetMenu() {
+    if (targetMenuOverlay) {
+        targetMenuOverlay.classList.add('active');
     }
 }
 
-function closeTarget() {
-    if (isTargetOpen) {
-        isTargetOpen = false;
-        targetBtn.classList.remove('expanded');
-        document.removeEventListener('click', closeTargetOnOutsideClick);
+function closeTargetMenu() {
+    if (targetMenuOverlay) {
+        targetMenuOverlay.classList.remove('active');
     }
 }
 
@@ -268,7 +267,7 @@ document.querySelectorAll('.target-chip').forEach(function(chip) {
         showToast('Target set to ' + target);
         
         // Close after selection
-        setTimeout(closeTarget, 300);
+        setTimeout(closeTargetMenu, 300);
     });
 });
 
@@ -295,7 +294,7 @@ if (setBtn) {
             showToast('Custom target set to ' + target);
             
             // Close after setting
-            setTimeout(closeTarget, 300);
+            setTimeout(closeTargetMenu, 300);
         } else {
             showToast('Please enter 1-9999');
         }
@@ -398,21 +397,40 @@ function pad(n) {
     return String(n).padStart(2, '0');
 }
 
-// Format time in 12-hour AM/PM format
+// Format date and time - "03-Dec-25, 6:52 PM"
+function formatDateTimeFull(date) {
+    const day = pad(date.getDate());
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const year = String(date.getFullYear()).slice(-2);
+    
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    
+    const minutesStr = pad(minutes);
+    
+    return day + '-' + month + '-' + year + ', ' + hours + ':' + minutesStr + ' ' + ampm;
+}
+
+// Format time in 12-hour AM/PM format - "6:52 PM"
 function formatTime12Hour(date) {
     let hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     
     hours = hours % 12;
-    hours = hours ? hours : 12; // 0 should be 12
+    hours = hours ? hours : 12;
     
-    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+    const minutesStr = pad(minutes);
     
     return hours + ':' + minutesStr + ' ' + ampm;
 }
 
-// Format ETC time (00:02:44 or 5h 23m)
+// Format ETC time (5h 23m or 2d 5h)
 function formatETC(ms) {
     const totalSeconds = Math.floor(ms / 1000);
     
@@ -616,10 +634,13 @@ document.addEventListener('visibilitychange', function() {
 });
 
 // ============================================
-// END OF SCRIPT - V9.1 COMPLETE 🚀
+// END OF SCRIPT - V9.1.1 COMPLETE 🚀
 // ============================================
 console.log('✅ All event listeners attached');
-console.log('🔥 Flagship features: TIME (AM/PM) & ETC working perfectly');
+console.log('🔥 Flagship features ready:');
+console.log('   ✅ TIME with full date (DD-MMM-YY, HH:MM AM/PM)');
+console.log('   ✅ ETC with full date (DD-MMM-YY, HH:MM AM/PM)');
+console.log('   ✅ Target menu fixed (opens on click, hidden by default)');
 
 // End of DOMContentLoaded
 });
