@@ -71,7 +71,7 @@ function updateDisplay() {
         if (container) {
             const roller = container.querySelector('.digit-roller');
             if (roller) {
-                const offset = -parseInt(digit) * 85;
+                const offset = -parseInt(digit) * 80;
                 roller.style.transform = `translateY(${offset}px)`;
             }
         }
