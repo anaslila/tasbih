@@ -58,7 +58,7 @@ updateStats();
 // Start stats interval - updates every second
 statsInterval = setInterval(updateStats, 1000);
 
-console.log('✅ Tasbih v9.1.2 LOADED - Instant tap + screen controls');
+console.log('✅ Tasbih v9.1.2 LOADED - Fixed double tap + haptic');
 console.log('📊 State:', { counter, target, firstCountTime });
 
 // ============================================
@@ -84,7 +84,7 @@ function updateDisplay() {
 // ============================================
 function updateProgress() {
     if (!progressRing) return;
-    const circumference = 2 * Math.PI * 137; // radius for 300px circle
+    const circumference = 2 * Math.PI * 128;
     const progress = Math.min(counter / target, 1);
     const offset = circumference - (progress * circumference);
     progressRing.style.strokeDashoffset = offset;
@@ -96,7 +96,6 @@ function updateProgress() {
 function incrementCounter() {
     const now = Date.now();
     
-    // First count - start session
     if (counter === 0) {
         firstCountTime = now;
         timestamps = [now];
@@ -111,10 +110,6 @@ function incrementCounter() {
     saveData();
     updateStats();
     
-    // Haptic feedback
-    if (navigator.vibrate) navigator.vibrate(10);
-    
-    // Target reached
     if (counter === target) {
         showToast('🎉 Target reached! MashaAllah!');
         if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
@@ -129,7 +124,6 @@ function decrementCounter() {
         counter--;
         timestamps.pop();
         
-        // Reset if back to zero
         if (counter === 0) {
             firstCountTime = null;
             timestamps = [];
@@ -139,19 +133,19 @@ function decrementCounter() {
         updateProgress();
         saveData();
         updateStats();
-        
-        if (navigator.vibrate) navigator.vibrate(10);
     }
 }
 
 // ============================================
-// BUTTON CLICKS (with INSTANT animation)
+// BUTTON CLICKS (with INSTANT animation + HAPTIC)
 // ============================================
 if (plusBtn) {
-    // Touch events for instant feedback
     plusBtn.addEventListener('touchstart', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         this.classList.add('pressed');
+        
+        if (navigator.vibrate) navigator.vibrate(15);
         incrementCounter();
     });
     
@@ -160,8 +154,8 @@ if (plusBtn) {
         this.classList.remove('pressed');
     });
     
-    // Mouse events for desktop
-    plusBtn.addEventListener('mousedown', function() {
+    plusBtn.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
         this.classList.add('pressed');
         incrementCounter();
     });
@@ -172,10 +166,12 @@ if (plusBtn) {
 }
 
 if (minusBtn) {
-    // Touch events for instant feedback
     minusBtn.addEventListener('touchstart', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         this.classList.add('pressed');
+        
+        if (navigator.vibrate) navigator.vibrate(15);
         decrementCounter();
     });
     
@@ -184,8 +180,8 @@ if (minusBtn) {
         this.classList.remove('pressed');
     });
     
-    // Mouse events for desktop
-    minusBtn.addEventListener('mousedown', function() {
+    minusBtn.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
         this.classList.add('pressed');
         decrementCounter();
     });
@@ -197,15 +193,27 @@ if (minusBtn) {
 
 // ============================================
 // SCREEN TAP ZONES (LEFT = -, RIGHT = +)
+// FIXED: Prevent double counting on mobile
 // ============================================
+let lastTapTime = 0;
+const tapDebounce = 100;
+
 document.addEventListener('touchstart', function(e) {
-    // Ignore if tapping on buttons, FABs, or target menu
+    const now = Date.now();
+    
+    if (now - lastTapTime < tapDebounce) {
+        return;
+    }
+    lastTapTime = now;
+    
     if (
         e.target.closest('.control-btn') ||
         e.target.closest('.fab') ||
         e.target.closest('.target-btn') ||
         e.target.closest('.target-menu-overlay') ||
-        e.target.closest('.popup-overlay')
+        e.target.closest('.popup-overlay') ||
+        e.target.closest('.stat-card') ||
+        e.target.closest('.toast')
     ) {
         return;
     }
@@ -213,33 +221,42 @@ document.addEventListener('touchstart', function(e) {
     const screenWidth = window.innerWidth;
     const tapX = e.touches[0].clientX;
     
-    // Right side = Plus
     if (tapX > screenWidth / 2) {
+        e.preventDefault();
         incrementCounter();
+        
+        if (navigator.vibrate) navigator.vibrate(15);
+        
         if (plusBtn) {
             plusBtn.classList.add('pressed');
-            setTimeout(() => plusBtn.classList.remove('pressed'), 200);
+            setTimeout(() => plusBtn.classList.remove('pressed'), 150);
         }
-    }
-    // Left side = Minus
-    else {
+    } else {
+        e.preventDefault();
         decrementCounter();
+        
+        if (navigator.vibrate) navigator.vibrate(15);
+        
         if (minusBtn) {
             minusBtn.classList.add('pressed');
-            setTimeout(() => minusBtn.classList.remove('pressed'), 200);
+            setTimeout(() => minusBtn.classList.remove('pressed'), 150);
         }
     }
-});
+}, { passive: false });
 
-// Also for mouse clicks on desktop
 document.addEventListener('click', function(e) {
-    // Ignore if clicking on buttons, FABs, or target menu
+    if ('ontouchstart' in window) {
+        return;
+    }
+    
     if (
         e.target.closest('.control-btn') ||
         e.target.closest('.fab') ||
         e.target.closest('.target-btn') ||
         e.target.closest('.target-menu-overlay') ||
-        e.target.closest('.popup-overlay')
+        e.target.closest('.popup-overlay') ||
+        e.target.closest('.stat-card') ||
+        e.target.closest('.toast')
     ) {
         return;
     }
@@ -247,51 +264,44 @@ document.addEventListener('click', function(e) {
     const screenWidth = window.innerWidth;
     const clickX = e.clientX;
     
-    // Right side = Plus
     if (clickX > screenWidth / 2) {
         incrementCounter();
         if (plusBtn) {
             plusBtn.classList.add('pressed');
-            setTimeout(() => plusBtn.classList.remove('pressed'), 200);
+            setTimeout(() => plusBtn.classList.remove('pressed'), 150);
         }
-    }
-    // Left side = Minus
-    else {
+    } else {
         decrementCounter();
         if (minusBtn) {
             minusBtn.classList.add('pressed');
-            setTimeout(() => minusBtn.classList.remove('pressed'), 200);
+            setTimeout(() => minusBtn.classList.remove('pressed'), 150);
         }
     }
 });
 
 // ============================================
-// STATISTICS (TIME, SPEED, ETC)
+// STATISTICS
 // ============================================
 function updateStats() {
     if (counter > 0 && firstCountTime) {
         const now = Date.now();
         const elapsed = now - firstCountTime;
         
-        // TIME (HH:MM:SS format)
         const h = Math.floor(elapsed / 3600000);
         const m = Math.floor((elapsed % 3600000) / 60000);
         const s = Math.floor((elapsed % 60000) / 1000);
         
         if (timeValue) timeValue.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
         
-        // Time detail
         if (timeDetail) {
             const startDate = new Date(firstCountTime);
             timeDetail.textContent = 'Started at ' + formatDateTimeFull(startDate);
         }
         
-        // SPEED (Counts Per Minute)
         const minutes = elapsed / 60000;
         const speed = minutes > 0 ? Math.round(counter / minutes) : 0;
         if (speedValue) speedValue.innerHTML = speed + '<span class="unit">/min</span>';
         
-        // ETC (Estimated Time to Completion)
         if (counter < target) {
             const remaining = target - counter;
             const avgMs = elapsed / counter;
@@ -308,7 +318,6 @@ function updateStats() {
             if (etcDetail) etcDetail.textContent = 'Target completed ✅';
         }
     } else {
-        // Not started
         if (timeValue) timeValue.textContent = '00:00:00';
         if (timeDetail) timeDetail.textContent = 'Not started';
         if (speedValue) speedValue.innerHTML = '0<span class="unit">/min</span>';
@@ -353,7 +362,6 @@ function closeTargetMenu() {
     }
 }
 
-// Preset target chips
 document.querySelectorAll('.target-chip').forEach(function(chip) {
     chip.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -371,12 +379,10 @@ document.querySelectorAll('.target-chip').forEach(function(chip) {
         saveData();
         
         showToast('Target set to ' + target);
-        
         setTimeout(closeTargetMenu, 300);
     });
 });
 
-// Custom target
 if (setBtn) {
     setBtn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -396,7 +402,6 @@ if (setBtn) {
             saveData();
             
             showToast('Custom target set to ' + target);
-            
             setTimeout(closeTargetMenu, 300);
         } else {
             showToast('Please enter 1-9999');
@@ -490,7 +495,7 @@ if (saveBtn) {
 }
 
 // ============================================
-// UTILITY FUNCTIONS
+// UTILITIES
 // ============================================
 function pad(n) {
     return String(n).padStart(2, '0');
@@ -591,9 +596,7 @@ function loadData() {
 window.addEventListener('beforeunload', saveData);
 
 setInterval(function() {
-    if (counter > 0) {
-        saveData();
-    }
+    if (counter > 0) saveData();
 }, 30000);
 
 // ============================================
@@ -603,72 +606,16 @@ let deferredPrompt;
 
 if (window.matchMedia('(display-mode: standalone)').matches) {
     console.log('✅ App is installed');
-} else {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    if (isIOS && !localStorage.getItem('iosPromptDismissed')) {
-        setTimeout(function() {
-            const iosPrompt = document.getElementById('iosPrompt');
-            if (iosPrompt) {
-                iosPrompt.classList.add('show');
-                
-                const closeBtn = document.getElementById('iosPromptClose');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', function() {
-                        iosPrompt.classList.remove('show');
-                        localStorage.setItem('iosPromptDismissed', 'true');
-                    });
-                }
-            }
-        }, 5000);
-    }
 }
-
-window.addEventListener('beforeinstallprompt', function(e) {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    if (!localStorage.getItem('androidPromptDismissed')) {
-        setTimeout(function() {
-            const androidPrompt = document.getElementById('androidPrompt');
-            if (androidPrompt) {
-                androidPrompt.classList.add('show');
-                
-                const installBtn = document.getElementById('androidInstallBtn');
-                if (installBtn) {
-                    installBtn.addEventListener('click', async function() {
-                        androidPrompt.classList.remove('show');
-                        deferredPrompt.prompt();
-                        const result = await deferredPrompt.userChoice;
-                        console.log('Install outcome:', result.outcome);
-                        deferredPrompt = null;
-                    });
-                }
-                
-                const closeBtn = document.getElementById('androidPromptClose');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', function() {
-                        androidPrompt.classList.remove('show');
-                        localStorage.setItem('androidPromptDismissed', 'true');
-                    });
-                }
-            }
-        }, 5000);
-    }
-});
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
-        .then(function(reg) {
-            console.log('✅ Service Worker registered');
-        })
-        .catch(function(err) {
-            console.error('❌ SW failed:', err);
-        });
+        .then(reg => console.log('✅ SW registered'))
+        .catch(err => console.error('❌ SW failed:', err));
 }
 
 // ============================================
-// KEYBOARD SHORTCUTS
+// KEYBOARD
 // ============================================
 document.addEventListener('keydown', function(e) {
     if (e.code === 'Space') {
@@ -676,29 +623,24 @@ document.addEventListener('keydown', function(e) {
         incrementCounter();
         if (plusBtn) {
             plusBtn.classList.add('pressed');
-            setTimeout(() => plusBtn.classList.remove('pressed'), 200);
+            setTimeout(() => plusBtn.classList.remove('pressed'), 150);
         }
     } else if (e.code === 'Backspace') {
         e.preventDefault();
         decrementCounter();
         if (minusBtn) {
             minusBtn.classList.add('pressed');
-            setTimeout(() => minusBtn.classList.remove('pressed'), 200);
+            setTimeout(() => minusBtn.classList.remove('pressed'), 150);
         }
     }
 });
 
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-});
-
+document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('visibilitychange', function() {
-    if (document.hidden && counter > 0) {
-        saveData();
-    }
+    if (document.hidden && counter > 0) saveData();
 });
 
-console.log('✅ Screen tap zones active: LEFT = -, RIGHT = +');
-console.log('✅ Instant button animations enabled');
+console.log('✅ Fixed: No double tap on mobile!');
+console.log('✅ Haptic feedback enabled!');
 
 });
