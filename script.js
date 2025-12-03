@@ -10,7 +10,7 @@ let firstCountTime = null;
 let timestamps = [];
 let statsInterval = null;
 
-const STORAGE_KEY = 'tasbih_v911';
+const STORAGE_KEY = 'tasbih_v912';
 
 // ============================================
 // DOM ELEMENTS
@@ -58,7 +58,7 @@ updateStats();
 // Start stats interval - updates every second
 statsInterval = setInterval(updateStats, 1000);
 
-console.log('✅ Tasbih v9.1.1 LOADED - Fixed target menu + date format');
+console.log('✅ Tasbih v9.1.2 LOADED - Instant tap + screen controls');
 console.log('📊 State:', { counter, target, firstCountTime });
 
 // ============================================
@@ -84,113 +84,221 @@ function updateDisplay() {
 // ============================================
 function updateProgress() {
     if (!progressRing) return;
-    const circumference = 2 * Math.PI * 155;
+    const circumference = 2 * Math.PI * 137; // radius for 300px circle
     const progress = Math.min(counter / target, 1);
     const offset = circumference - (progress * circumference);
     progressRing.style.strokeDashoffset = offset;
 }
 
 // ============================================
-// INCREMENT COUNTER
+// INCREMENT FUNCTION
 // ============================================
-if (plusBtn) {
-    plusBtn.addEventListener('click', function() {
-        const now = Date.now();
+function incrementCounter() {
+    const now = Date.now();
+    
+    // First count - start session
+    if (counter === 0) {
+        firstCountTime = now;
+        timestamps = [now];
+        console.log('🆕 Session started:', formatDateTimeFull(new Date(now)));
+    } else {
+        timestamps.push(now);
+    }
+    
+    counter++;
+    updateDisplay();
+    updateProgress();
+    saveData();
+    updateStats();
+    
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(10);
+    
+    // Target reached
+    if (counter === target) {
+        showToast('🎉 Target reached! MashaAllah!');
+        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    }
+}
+
+// ============================================
+// DECREMENT FUNCTION
+// ============================================
+function decrementCounter() {
+    if (counter > 0) {
+        counter--;
+        timestamps.pop();
         
-        // First count - start session
+        // Reset if back to zero
         if (counter === 0) {
-            firstCountTime = now;
-            timestamps = [now];
-            console.log('🆕 Session started:', formatDateTimeFull(new Date(now)));
-        } else {
-            timestamps.push(now);
+            firstCountTime = null;
+            timestamps = [];
         }
         
-        counter++;
         updateDisplay();
         updateProgress();
         saveData();
         updateStats();
         
-        // Haptic feedback
         if (navigator.vibrate) navigator.vibrate(10);
-        
-        // Target reached
-        if (counter === target) {
-            showToast('🎉 Target reached! MashaAllah!');
-            if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-        }
-    });
+    }
 }
 
 // ============================================
-// DECREMENT COUNTER
+// BUTTON CLICKS (with INSTANT animation)
 // ============================================
+if (plusBtn) {
+    // Touch events for instant feedback
+    plusBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        this.classList.add('pressed');
+        incrementCounter();
+    });
+    
+    plusBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        this.classList.remove('pressed');
+    });
+    
+    // Mouse events for desktop
+    plusBtn.addEventListener('mousedown', function() {
+        this.classList.add('pressed');
+        incrementCounter();
+    });
+    
+    plusBtn.addEventListener('mouseup', function() {
+        this.classList.remove('pressed');
+    });
+}
+
 if (minusBtn) {
-    minusBtn.addEventListener('click', function() {
-        if (counter > 0) {
-            counter--;
-            timestamps.pop();
-            
-            // Reset if back to zero
-            if (counter === 0) {
-                firstCountTime = null;
-                timestamps = [];
-            }
-            
-            updateDisplay();
-            updateProgress();
-            saveData();
-            updateStats();
-            
-            if (navigator.vibrate) navigator.vibrate(10);
-        }
+    // Touch events for instant feedback
+    minusBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        this.classList.add('pressed');
+        decrementCounter();
+    });
+    
+    minusBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        this.classList.remove('pressed');
+    });
+    
+    // Mouse events for desktop
+    minusBtn.addEventListener('mousedown', function() {
+        this.classList.add('pressed');
+        decrementCounter();
+    });
+    
+    minusBtn.addEventListener('mouseup', function() {
+        this.classList.remove('pressed');
     });
 }
 
 // ============================================
-// 🔥 FLAGSHIP FEATURE: STATISTICS
-// TIME, SPEED, ETC - ALL WITH PROPER DATE FORMAT
+// SCREEN TAP ZONES (LEFT = -, RIGHT = +)
+// ============================================
+document.addEventListener('touchstart', function(e) {
+    // Ignore if tapping on buttons, FABs, or target menu
+    if (
+        e.target.closest('.control-btn') ||
+        e.target.closest('.fab') ||
+        e.target.closest('.target-btn') ||
+        e.target.closest('.target-menu-overlay') ||
+        e.target.closest('.popup-overlay')
+    ) {
+        return;
+    }
+    
+    const screenWidth = window.innerWidth;
+    const tapX = e.touches[0].clientX;
+    
+    // Right side = Plus
+    if (tapX > screenWidth / 2) {
+        incrementCounter();
+        if (plusBtn) {
+            plusBtn.classList.add('pressed');
+            setTimeout(() => plusBtn.classList.remove('pressed'), 200);
+        }
+    }
+    // Left side = Minus
+    else {
+        decrementCounter();
+        if (minusBtn) {
+            minusBtn.classList.add('pressed');
+            setTimeout(() => minusBtn.classList.remove('pressed'), 200);
+        }
+    }
+});
+
+// Also for mouse clicks on desktop
+document.addEventListener('click', function(e) {
+    // Ignore if clicking on buttons, FABs, or target menu
+    if (
+        e.target.closest('.control-btn') ||
+        e.target.closest('.fab') ||
+        e.target.closest('.target-btn') ||
+        e.target.closest('.target-menu-overlay') ||
+        e.target.closest('.popup-overlay')
+    ) {
+        return;
+    }
+    
+    const screenWidth = window.innerWidth;
+    const clickX = e.clientX;
+    
+    // Right side = Plus
+    if (clickX > screenWidth / 2) {
+        incrementCounter();
+        if (plusBtn) {
+            plusBtn.classList.add('pressed');
+            setTimeout(() => plusBtn.classList.remove('pressed'), 200);
+        }
+    }
+    // Left side = Minus
+    else {
+        decrementCounter();
+        if (minusBtn) {
+            minusBtn.classList.add('pressed');
+            setTimeout(() => minusBtn.classList.remove('pressed'), 200);
+        }
+    }
+});
+
+// ============================================
+// STATISTICS (TIME, SPEED, ETC)
 // ============================================
 function updateStats() {
     if (counter > 0 && firstCountTime) {
         const now = Date.now();
         const elapsed = now - firstCountTime;
         
-        // ============================================
         // TIME (HH:MM:SS format)
-        // ============================================
         const h = Math.floor(elapsed / 3600000);
         const m = Math.floor((elapsed % 3600000) / 60000);
         const s = Math.floor((elapsed % 60000) / 1000);
         
         if (timeValue) timeValue.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
         
-        // Time detail - "Started at 03-Dec-25, 6:52 PM"
+        // Time detail
         if (timeDetail) {
             const startDate = new Date(firstCountTime);
             timeDetail.textContent = 'Started at ' + formatDateTimeFull(startDate);
         }
         
-        // ============================================
         // SPEED (Counts Per Minute)
-        // ============================================
         const minutes = elapsed / 60000;
         const speed = minutes > 0 ? Math.round(counter / minutes) : 0;
         if (speedValue) speedValue.innerHTML = speed + '<span class="unit">/min</span>';
         
-        // ============================================
         // ETC (Estimated Time to Completion)
-        // ============================================
         if (counter < target) {
             const remaining = target - counter;
             const avgMs = elapsed / counter;
             const etcMs = remaining * avgMs;
             
-            // Format ETC time
             if (etcValue) etcValue.textContent = formatETC(etcMs);
             
-            // Calculate completion time - "Might end at 04-Dec-25, 2:15 AM"
             if (etcDetail) {
                 const completionDate = new Date(now + etcMs);
                 etcDetail.textContent = 'Might end at ' + formatDateTimeFull(completionDate);
@@ -210,7 +318,7 @@ function updateStats() {
 }
 
 // ============================================
-// TARGET MENU - OPEN/CLOSE
+// TARGET MENU
 // ============================================
 if (targetBtn) {
     targetBtn.addEventListener('click', function(e) {
@@ -250,13 +358,11 @@ document.querySelectorAll('.target-chip').forEach(function(chip) {
     chip.addEventListener('click', function(e) {
         e.stopPropagation();
         
-        // Update active state
         document.querySelectorAll('.target-chip').forEach(function(c) {
             c.classList.remove('active');
         });
         chip.classList.add('active');
         
-        // Set target
         target = parseInt(chip.dataset.target);
         if (targetValue) targetValue.textContent = target;
         
@@ -266,7 +372,6 @@ document.querySelectorAll('.target-chip').forEach(function(chip) {
         
         showToast('Target set to ' + target);
         
-        // Close after selection
         setTimeout(closeTargetMenu, 300);
     });
 });
@@ -278,7 +383,6 @@ if (setBtn) {
         
         const val = parseInt(customInput.value);
         if (val && val > 0 && val < 10000) {
-            // Clear active chips
             document.querySelectorAll('.target-chip').forEach(function(c) {
                 c.classList.remove('active');
             });
@@ -293,7 +397,6 @@ if (setBtn) {
             
             showToast('Custom target set to ' + target);
             
-            // Close after setting
             setTimeout(closeTargetMenu, 300);
         } else {
             showToast('Please enter 1-9999');
@@ -302,7 +405,7 @@ if (setBtn) {
 }
 
 // ============================================
-// RESET - PREMIUM POPUP ANIMATION
+// RESET
 // ============================================
 if (resetBtn) {
     resetBtn.addEventListener('click', function() {
@@ -324,7 +427,6 @@ if (confirmBtn) {
     confirmBtn.addEventListener('click', function() {
         if (resetPopup) resetPopup.classList.remove('active');
         
-        // Animate counter down to zero
         const startCount = counter;
         const duration = 800;
         const startTime = Date.now();
@@ -332,8 +434,6 @@ if (confirmBtn) {
         function animate() {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
-            // Ease out cubic
             const easeProgress = 1 - Math.pow(1 - progress, 3);
             
             counter = Math.round(startCount * (1 - easeProgress));
@@ -343,7 +443,6 @@ if (confirmBtn) {
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                // Reset complete
                 counter = 0;
                 firstCountTime = null;
                 timestamps = [];
@@ -397,7 +496,6 @@ function pad(n) {
     return String(n).padStart(2, '0');
 }
 
-// Format date and time - "03-Dec-25, 6:52 PM"
 function formatDateTimeFull(date) {
     const day = pad(date.getDate());
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -416,21 +514,6 @@ function formatDateTimeFull(date) {
     return day + '-' + month + '-' + year + ', ' + hours + ':' + minutesStr + ' ' + ampm;
 }
 
-// Format time in 12-hour AM/PM format - "6:52 PM"
-function formatTime12Hour(date) {
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    
-    const minutesStr = pad(minutes);
-    
-    return hours + ':' + minutesStr + ' ' + ampm;
-}
-
-// Format ETC time (5h 23m or 2d 5h)
 function formatETC(ms) {
     const totalSeconds = Math.floor(ms / 1000);
     
@@ -445,7 +528,6 @@ function formatETC(ms) {
     const mo = Math.floor(totalSeconds / 2592000) % 12;
     const y = Math.floor(totalSeconds / 31536000);
     
-    // Return formatted based on scale
     if (y > 0) return mo > 0 ? y + 'y ' + mo + 'mo' : y + ' year' + (y > 1 ? 's' : '');
     if (mo > 0) return w > 0 ? mo + 'mo ' + w + 'w' : mo + ' month' + (mo > 1 ? 's' : '');
     if (w > 0) return d > 0 ? w + 'w ' + d + 'd' : w + ' week' + (w > 1 ? 's' : '');
@@ -455,7 +537,6 @@ function formatETC(ms) {
     return s + 's';
 }
 
-// Show toast notification
 function showToast(msg) {
     if (toastText) toastText.textContent = msg;
     if (toast) {
@@ -467,7 +548,7 @@ function showToast(msg) {
 }
 
 // ============================================
-// LOCAL STORAGE (PERSISTENT DATA)
+// STORAGE
 // ============================================
 function saveData() {
     const data = {
@@ -492,7 +573,6 @@ function loadData() {
             
             if (targetValue) targetValue.textContent = target;
             
-            // Update active target chip
             document.querySelectorAll('.target-chip').forEach(function(chip) {
                 if (parseInt(chip.dataset.target) === target) {
                     chip.classList.add('active');
@@ -508,10 +588,8 @@ function loadData() {
     }
 }
 
-// Save before unload
 window.addEventListener('beforeunload', saveData);
 
-// Save periodically (every 30 seconds)
 setInterval(function() {
     if (counter > 0) {
         saveData();
@@ -519,15 +597,13 @@ setInterval(function() {
 }, 30000);
 
 // ============================================
-// PWA INSTALL PROMPTS
+// PWA
 // ============================================
 let deferredPrompt;
 
-// Check if already installed
 if (window.matchMedia('(display-mode: standalone)').matches) {
     console.log('✅ App is installed');
 } else {
-    // iOS detection
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     
     if (isIOS && !localStorage.getItem('iosPromptDismissed')) {
@@ -548,7 +624,6 @@ if (window.matchMedia('(display-mode: standalone)').matches) {
     }
 }
 
-// Android PWA install
 window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     deferredPrompt = e;
@@ -582,21 +657,13 @@ window.addEventListener('beforeinstallprompt', function(e) {
     }
 });
 
-window.addEventListener('appinstalled', function() {
-    console.log('✅ PWA installed successfully');
-    showToast('App installed! ✅');
-});
-
-// ============================================
-// SERVICE WORKER
-// ============================================
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
         .then(function(reg) {
-            console.log('✅ Service Worker registered:', reg.scope);
+            console.log('✅ Service Worker registered');
         })
         .catch(function(err) {
-            console.error('❌ SW registration failed:', err);
+            console.error('❌ SW failed:', err);
         });
 }
 
@@ -606,41 +673,32 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('keydown', function(e) {
     if (e.code === 'Space') {
         e.preventDefault();
-        if (plusBtn) plusBtn.click();
+        incrementCounter();
+        if (plusBtn) {
+            plusBtn.classList.add('pressed');
+            setTimeout(() => plusBtn.classList.remove('pressed'), 200);
+        }
     } else if (e.code === 'Backspace') {
         e.preventDefault();
-        if (minusBtn) minusBtn.click();
-    } else if (e.code === 'KeyR' && e.ctrlKey) {
-        e.preventDefault();
-        if (resetBtn) resetBtn.click();
+        decrementCounter();
+        if (minusBtn) {
+            minusBtn.classList.add('pressed');
+            setTimeout(() => minusBtn.classList.remove('pressed'), 200);
+        }
     }
 });
 
-// ============================================
-// PREVENT CONTEXT MENU
-// ============================================
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
 });
 
-// ============================================
-// VISIBILITY CHANGE (Save when tab hidden)
-// ============================================
 document.addEventListener('visibilitychange', function() {
     if (document.hidden && counter > 0) {
         saveData();
-        console.log('💾 Data saved (tab hidden)');
     }
 });
 
-// ============================================
-// END OF SCRIPT - V9.1.1 COMPLETE 🚀
-// ============================================
-console.log('✅ All event listeners attached');
-console.log('🔥 Flagship features ready:');
-console.log('   ✅ TIME with full date (DD-MMM-YY, HH:MM AM/PM)');
-console.log('   ✅ ETC with full date (DD-MMM-YY, HH:MM AM/PM)');
-console.log('   ✅ Target menu fixed (opens on click, hidden by default)');
+console.log('✅ Screen tap zones active: LEFT = -, RIGHT = +');
+console.log('✅ Instant button animations enabled');
 
-// End of DOMContentLoaded
 });

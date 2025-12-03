@@ -785,3 +785,14 @@ body {
         font-size: 24px;
     }
 }
+/* INSTANT BUTTON PRESS ANIMATION */
+.control-btn.pressed .btn-glow {
+    opacity: 1 !important;
+    transition: none !important; /* Instant - no delay */
+}
+
+.control-btn.pressed {
+    transform: scale(0.88) !important;
+    transition: transform 0.05s ease !important; /* Super fast */
+}
+
