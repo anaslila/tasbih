@@ -1,687 +1,625 @@
-// ========================
-// Global State
-// ========================
+// Wait for DOM to fully load
+document.addEventListener('DOMContentLoaded', function() {
+
+// ============================================
+// STATE MANAGEMENT
+// ============================================
 let counter = 0;
 let target = 33;
-let startTime = null;
+let firstCountTime = null;
 let timestamps = [];
-let currentDhikr = 'Subhanallah';
-let beadCount = 33;
-let currentBeadIndex = 0;
-let isAnimating = false;
+let statsInterval = null;
+let isTargetOpen = false;
 
-// Settings
-let settings = {
-    vibration: true,
-    sound: false,
-    darkMode: false
-};
+const STORAGE_KEY = 'tasbih_v91';
 
-// ========================
-// DOM Elements
-// ========================
-const countNumber = document.getElementById('countNumber');
-const countTarget = document.getElementById('countTarget');
-const tapArea = document.getElementById('tapArea');
-const tasbihBeads = document.getElementById('tasbihBeads');
-const menuBtn = document.getElementById('menuBtn');
-const sideMenu = document.getElementById('sideMenu');
-const closeBtn = document.getElementById('closeBtn');
-const overlay = document.getElementById('overlay');
-const toast = document.getElementById('toast');
+// ============================================
+// DOM ELEMENTS
+// ============================================
+const digitContainers = [
+    document.getElementById('digit0'),
+    document.getElementById('digit1'),
+    document.getElementById('digit2'),
+    document.getElementById('digit3')
+];
 
-// Buttons
+const progressRing = document.getElementById('progressRing');
+const targetBtn = document.getElementById('targetBtn');
+const targetValue = document.getElementById('targetValue');
+const targetContent = document.getElementById('targetContent');
+const targetMenu = document.getElementById('targetMenu');
+const customInput = document.getElementById('customInput');
+const setBtn = document.getElementById('setBtn');
+const plusBtn = document.getElementById('plusBtn');
 const minusBtn = document.getElementById('minusBtn');
 const resetBtn = document.getElementById('resetBtn');
 const saveBtn = document.getElementById('saveBtn');
+const resetPopup = document.getElementById('resetPopup');
+const cancelBtn = document.getElementById('cancelBtn');
+const confirmBtn = document.getElementById('confirmBtn');
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
 
-// Custom Target
-const customTargetBtn = document.getElementById('customTargetBtn');
-const customTargetInput = document.getElementById('customTargetInput');
-const customTargetValue = document.getElementById('customTargetValue');
-const setTargetBtn = document.getElementById('setTargetBtn');
+const totalCount = document.getElementById('totalCount');
+const timeValue = document.getElementById('timeValue');
+const timeDetail = document.getElementById('timeDetail');
+const speedValue = document.getElementById('speedValue');
+const etcValue = document.getElementById('etcValue');
+const etcDetail = document.getElementById('etcDetail');
 
-// Modals
-const dhikrModal = document.getElementById('dhikrModal');
-const historyModal = document.getElementById('historyModal');
-const settingsModal = document.getElementById('settingsModal');
+// ============================================
+// INITIALIZATION
+// ============================================
+loadData();
+updateDisplay();
+updateProgress();
+updateStats();
 
-const dhikrBtn = document.getElementById('dhikrBtn');
-const historyBtn = document.getElementById('historyBtn');
-const settingsBtn = document.getElementById('settingsBtn');
+// Start stats interval - updates every second
+statsInterval = setInterval(updateStats, 1000);
 
-const dhikrClose = document.getElementById('dhikrClose');
-const historyClose = document.getElementById('historyClose');
-const settingsClose = document.getElementById('settingsClose');
+console.log('✅ Tasbih v9.1 LOADED - Premium animations active');
+console.log('📊 State:', { counter, target, firstCountTime });
 
-// Stats
-const statTotal = document.getElementById('statTotal');
-const statTime = document.getElementById('statTime');
-const statSpeed = document.getElementById('statSpeed');
-const statSessions = document.getElementById('statSessions');
-const statEtc = document.getElementById('statEtc');
-
-// Settings
-const vibrationToggle = document.getElementById('vibrationToggle');
-const soundToggle = document.getElementById('soundToggle');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const clearDataBtn = document.getElementById('clearDataBtn');
-
-// ========================
-// Initialization
-// ========================
-window.addEventListener('load', () => {
-    loadSettings();
-    loadCounter();
-    createBeads();
-    updateDisplay();
-    updateStats();
-    loadSessions();
-    
-    // Start stats update interval
-    setInterval(updateStats, 1000);
-    
-    // Start bead animation loop
-    startBeadAnimation();
-});
-
-// ========================
-// Load/Save Functions
-// ========================
-function loadSettings() {
-    const saved = localStorage.getItem('tasbihSettings');
-    if (saved) {
-        settings = JSON.parse(saved);
-    }
-    
-    vibrationToggle.checked = settings.vibration;
-    soundToggle.checked = settings.sound;
-    darkModeToggle.checked = settings.darkMode;
-    
-    if (settings.darkMode) {
-        document.body.classList.add('dark-mode');
-    }
-}
-
-function saveSettings() {
-    localStorage.setItem('tasbihSettings', JSON.stringify(settings));
-}
-
-function loadCounter() {
-    const saved = localStorage.getItem('currentCounter');
-    if (saved) {
-        const data = JSON.parse(saved);
-        counter = data.counter || 0;
-        target = data.target || 33;
-        startTime = data.startTime || null;
-        timestamps = data.timestamps || [];
-        currentDhikr = data.dhikr || 'Subhanallah';
-        beadCount = target;
-    }
-}
-
-function saveCounter() {
-    const data = {
-        counter,
-        target,
-        startTime,
-        timestamps,
-        dhikr: currentDhikr
-    };
-    localStorage.setItem('currentCounter', JSON.stringify(data));
-}
-
-// ========================
-// Create Tasbih Beads - FIXED CIRCULAR POSITIONING
-// ========================
-function createBeads() {
-    tasbihBeads.innerHTML = '';
-    const containerWidth = 300;
-    const containerHeight = 300;
-    const radius = 140; // Distance from center
-    const centerX = containerWidth / 2;
-    const centerY = containerHeight / 2;
-    
-    for (let i = 0; i < beadCount; i++) {
-        const bead = document.createElement('div');
-        bead.className = 'bead';
-        bead.dataset.index = i;
-        
-        // Calculate angle for this bead (start from top, go clockwise)
-        const angle = (i / beadCount) * 2 * Math.PI - Math.PI / 2;
-        
-        // Calculate position on circle using proper trigonometry
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        
-        // Set position (beads are centered with transform in CSS)
-        bead.style.left = x + 'px';
-        bead.style.top = y + 'px';
-        
-        // Store position data for animation
-        bead.dataset.x = x;
-        bead.dataset.y = y;
-        bead.dataset.angle = angle;
-        
-        tasbihBeads.appendChild(bead);
-    }
-}
-
-// ========================
-// Bead Animation Loop (Tik-Tik Effect)
-// ========================
-function startBeadAnimation() {
-    setInterval(() => {
-        if (!isAnimating) {
-            animateNextBead();
+// ============================================
+// DISPLAY UPDATE (Rolling Animation)
+// ============================================
+function updateDisplay() {
+    const digits = String(counter).padStart(4, '0').split('');
+    digits.forEach((digit, index) => {
+        const container = digitContainers[3 - index];
+        if (container) {
+            const roller = container.querySelector('.digit-roller');
+            if (roller) {
+                const offset = -parseInt(digit) * 95;
+                roller.style.transform = `translateY(${offset}px)`;
+            }
         }
-    }, 150); // Tik-tik rhythm interval
+    });
+    if (totalCount) totalCount.textContent = counter;
 }
 
-function animateNextBead() {
-    const beads = document.querySelectorAll('.bead');
-    if (beads.length === 0) return;
-    
-    // Remove active from all beads
-    beads.forEach(b => b.classList.remove('active'));
-    
-    // Get current bead
-    const currentBead = beads[currentBeadIndex];
-    if (!currentBead) return;
-    
-    // Add ticking animation
-    currentBead.classList.add('active', 'ticking');
-    
-    // Remove animation class after completion
-    setTimeout(() => {
-        currentBead.classList.remove('ticking');
-    }, 300);
-    
-    // Move to next bead (circular motion)
-    currentBeadIndex = (currentBeadIndex + 1) % beadCount;
+// ============================================
+// PROGRESS RING
+// ============================================
+function updateProgress() {
+    if (!progressRing) return;
+    const circumference = 2 * Math.PI * 155;
+    const progress = Math.min(counter / target, 1);
+    const offset = circumference - (progress * circumference);
+    progressRing.style.strokeDashoffset = offset;
 }
 
-// ========================
-// Counter Functions
-// ========================
-tapArea.addEventListener('click', (e) => {
-    if (e.target.closest('.controls') || 
-        e.target.closest('.target-selector') ||
-        e.target.closest('.custom-target-input')) {
-        return;
-    }
-    
-    incrementCounter();
-});
-
-function incrementCounter() {
-    if (!startTime) {
-        startTime = Date.now();
-    }
-    
-    counter++;
-    timestamps.push(Date.now());
-    
-    // Update display with pulse animation
-    countNumber.classList.add('pulse');
-    setTimeout(() => countNumber.classList.remove('pulse'), 300);
-    
-    // Highlight current bead based on counter
-    highlightCounterBead();
-    
-    // Vibrate
-    vibrate();
-    
-    // Play sound
-    playSound();
-    
-    // Save and update
-    saveCounter();
-    updateDisplay();
-    
-    // Check if target reached
-    if (counter === target) {
-        showToast('🎉 Target reached! MashaAllah!');
-        vibrate(200);
-    }
-}
-
-function highlightCounterBead() {
-    const beads = document.querySelectorAll('.bead');
-    const beadIndex = (counter - 1) % beadCount;
-    
-    beads.forEach((bead, index) => {
-        if (index === beadIndex) {
-            bead.style.background = 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)';
-            bead.style.transform = 'translate(-50%, -50%) scale(1.3)';
-            
-            setTimeout(() => {
-                bead.style.transform = 'translate(-50%, -50%) scale(1)';
-            }, 300);
+// ============================================
+// INCREMENT COUNTER
+// ============================================
+if (plusBtn) {
+    plusBtn.addEventListener('click', function() {
+        const now = Date.now();
+        
+        // First count - start session
+        if (counter === 0) {
+            firstCountTime = now;
+            timestamps = [now];
+            console.log('🆕 Session started:', formatTime12Hour(new Date(now)));
+        } else {
+            timestamps.push(now);
+        }
+        
+        counter++;
+        updateDisplay();
+        updateProgress();
+        saveData();
+        updateStats();
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(10);
+        
+        // Target reached
+        if (counter === target) {
+            showToast('🎉 Target reached! MashaAllah!');
+            if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
         }
     });
 }
 
-minusBtn.addEventListener('click', () => {
-    if (counter > 0) {
-        counter--;
-        timestamps.pop();
-        vibrate(50);
-        saveCounter();
-        updateDisplay();
+// ============================================
+// DECREMENT COUNTER
+// ============================================
+if (minusBtn) {
+    minusBtn.addEventListener('click', function() {
+        if (counter > 0) {
+            counter--;
+            timestamps.pop();
+            
+            // Reset if back to zero
+            if (counter === 0) {
+                firstCountTime = null;
+                timestamps = [];
+            }
+            
+            updateDisplay();
+            updateProgress();
+            saveData();
+            updateStats();
+            
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+    });
+}
+
+// ============================================
+// 🔥 FLAGSHIP FEATURE: STATISTICS
+// TIME, SPEED, ETC - ALL WITH AM/PM FORMAT
+// ============================================
+function updateStats() {
+    if (counter > 0 && firstCountTime) {
+        const now = Date.now();
+        const elapsed = now - firstCountTime;
+        
+        // ============================================
+        // TIME (HH:MM:SS format)
+        // ============================================
+        const h = Math.floor(elapsed / 3600000);
+        const m = Math.floor((elapsed % 3600000) / 60000);
+        const s = Math.floor((elapsed % 60000) / 1000);
+        
+        if (timeValue) timeValue.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+        
+        // Time detail - "Started at 6:52 PM"
+        if (timeDetail) {
+            const startDate = new Date(firstCountTime);
+            timeDetail.textContent = 'Started at ' + formatTime12Hour(startDate);
+        }
+        
+        // ============================================
+        // SPEED (Counts Per Minute)
+        // ============================================
+        const minutes = elapsed / 60000;
+        const speed = minutes > 0 ? Math.round(counter / minutes) : 0;
+        if (speedValue) speedValue.innerHTML = speed + '<span class="unit">/min</span>';
+        
+        // ============================================
+        // ETC (Estimated Time to Completion)
+        // ============================================
+        if (counter < target) {
+            const remaining = target - counter;
+            const avgMs = elapsed / counter;
+            const etcMs = remaining * avgMs;
+            
+            // Format ETC time
+            if (etcValue) etcValue.textContent = formatETC(etcMs);
+            
+            // Calculate completion time - "Might end at 7:15 PM"
+            if (etcDetail) {
+                const completionDate = new Date(now + etcMs);
+                etcDetail.textContent = 'Might end at ' + formatTime12Hour(completionDate);
+            }
+        } else {
+            if (etcValue) etcValue.textContent = 'Done!';
+            if (etcDetail) etcDetail.textContent = 'Target completed ✅';
+        }
+    } else {
+        // Not started
+        if (timeValue) timeValue.textContent = '00:00:00';
+        if (timeDetail) timeDetail.textContent = 'Not started';
+        if (speedValue) speedValue.innerHTML = '0<span class="unit">/min</span>';
+        if (etcValue) etcValue.textContent = '--';
+        if (etcDetail) etcDetail.textContent = 'Not started';
     }
+}
+
+// ============================================
+// TARGET SELECTION - MORPHING ANIMATION
+// ============================================
+if (targetBtn) {
+    targetBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        if (!isTargetOpen) {
+            // Open - morph to rectangle
+            isTargetOpen = true;
+            targetBtn.classList.add('expanded');
+            
+            // Close when clicking outside
+            setTimeout(function() {
+                document.addEventListener('click', closeTargetOnOutsideClick);
+            }, 100);
+        } else {
+            // Close
+            closeTarget();
+        }
+    });
+}
+
+function closeTargetOnOutsideClick(e) {
+    if (targetBtn && !targetBtn.contains(e.target)) {
+        closeTarget();
+    }
+}
+
+function closeTarget() {
+    if (isTargetOpen) {
+        isTargetOpen = false;
+        targetBtn.classList.remove('expanded');
+        document.removeEventListener('click', closeTargetOnOutsideClick);
+    }
+}
+
+// Preset target chips
+document.querySelectorAll('.target-chip').forEach(function(chip) {
+    chip.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Update active state
+        document.querySelectorAll('.target-chip').forEach(function(c) {
+            c.classList.remove('active');
+        });
+        chip.classList.add('active');
+        
+        // Set target
+        target = parseInt(chip.dataset.target);
+        if (targetValue) targetValue.textContent = target;
+        
+        updateProgress();
+        updateStats();
+        saveData();
+        
+        showToast('Target set to ' + target);
+        
+        // Close after selection
+        setTimeout(closeTarget, 300);
+    });
 });
 
-resetBtn.addEventListener('click', () => {
-    if (counter === 0) return;
-    
-    if (confirm('Reset counter to 0?')) {
-        counter = 0;
-        startTime = null;
-        timestamps = [];
+// Custom target
+if (setBtn) {
+    setBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
         
-        // Reset bead colors
-        const beads = document.querySelectorAll('.bead');
-        beads.forEach(bead => {
-            bead.style.background = '';
-            bead.style.transform = '';
+        const val = parseInt(customInput.value);
+        if (val && val > 0 && val < 10000) {
+            // Clear active chips
+            document.querySelectorAll('.target-chip').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            
+            target = val;
+            if (targetValue) targetValue.textContent = target;
+            customInput.value = '';
+            
+            updateProgress();
+            updateStats();
+            saveData();
+            
+            showToast('Custom target set to ' + target);
+            
+            // Close after setting
+            setTimeout(closeTarget, 300);
+        } else {
+            showToast('Please enter 1-9999');
+        }
+    });
+}
+
+// ============================================
+// RESET - PREMIUM POPUP ANIMATION
+// ============================================
+if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+        if (counter > 0 && resetPopup) {
+            resetPopup.classList.add('active');
+        } else {
+            showToast('Counter is already at 0');
+        }
+    });
+}
+
+if (cancelBtn) {
+    cancelBtn.addEventListener('click', function() {
+        if (resetPopup) resetPopup.classList.remove('active');
+    });
+}
+
+if (confirmBtn) {
+    confirmBtn.addEventListener('click', function() {
+        if (resetPopup) resetPopup.classList.remove('active');
+        
+        // Animate counter down to zero
+        const startCount = counter;
+        const duration = 800;
+        const startTime = Date.now();
+        
+        function animate() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ease out cubic
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            counter = Math.round(startCount * (1 - easeProgress));
+            updateDisplay();
+            updateProgress();
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Reset complete
+                counter = 0;
+                firstCountTime = null;
+                timestamps = [];
+                
+                updateDisplay();
+                updateProgress();
+                updateStats();
+                saveData();
+                
+                showToast('Counter reset ✅');
+            }
+        }
+        
+        animate();
+    });
+}
+
+// ============================================
+// SAVE SESSION
+// ============================================
+if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+        if (counter === 0) {
+            showToast('No data to save!');
+            return;
+        }
+        
+        const sessions = JSON.parse(localStorage.getItem('tasbihSessions') || '[]');
+        const elapsed = firstCountTime ? (Date.now() - firstCountTime) : 0;
+        
+        sessions.unshift({
+            id: Date.now(),
+            count: counter,
+            target: target,
+            duration: elapsed,
+            date: new Date().toISOString(),
+            completed: counter >= target
         });
         
-        saveCounter();
-        updateDisplay();
-        showToast('♻️ Counter reset');
-    }
-});
-
-saveBtn.addEventListener('click', () => {
-    saveSession();
-});
-
-function updateDisplay() {
-    countNumber.textContent = counter;
-    countTarget.textContent = `/ ${target}`;
-    
-    // Update beads if target changed
-    if (beadCount !== target) {
-        beadCount = target;
-        createBeads();
-    }
-}
-
-// ========================
-// Target Selection
-// ========================
-document.querySelectorAll('.target-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        if (sessions.length > 50) sessions.pop();
+        localStorage.setItem('tasbihSessions', JSON.stringify(sessions));
         
-        const targetValue = btn.dataset.target;
-        
-        if (targetValue === 'custom') {
-            // Show custom input
-            customTargetInput.style.display = 'flex';
-            customTargetValue.focus();
-        } else {
-            // Hide custom input and set predefined target
-            customTargetInput.style.display = 'none';
-            target = parseInt(targetValue);
-            beadCount = target;
-            
-            createBeads();
-            saveCounter();
-            updateDisplay();
-            showToast(`🎯 Target set to ${target}`);
-        }
+        showToast('Session saved! ✅');
     });
-});
+}
 
-// Custom Target Set Button
-setTargetBtn.addEventListener('click', () => {
-    const value = parseInt(customTargetValue.value);
-    
-    if (!value || value < 1 || value > 9999) {
-        showToast('⚠️ Please enter a valid number (1-9999)');
-        return;
-    }
-    
-    target = value;
-    beadCount = target;
-    
-    createBeads();
-    saveCounter();
-    updateDisplay();
-    showToast(`🎯 Custom target set to ${target}`);
-});
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function pad(n) {
+    return String(n).padStart(2, '0');
+}
 
-// Allow Enter key to set custom target
-customTargetValue.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        setTargetBtn.click();
-    }
-});
+// Format time in 12-hour AM/PM format
+function formatTime12Hour(date) {
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 should be 12
+    
+    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+    
+    return hours + ':' + minutesStr + ' ' + ampm;
+}
 
-// ========================
-// Time Formatting Helper
-// ========================
-function formatTime(seconds) {
-    if (seconds < 60) {
-        return `${seconds}s`;
-    } else if (seconds < 3600) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes}m ${secs}s`;
-    } else if (seconds < 86400) {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        return `${hours}h ${minutes}m`;
-    } else if (seconds < 2592000) {
-        const days = Math.floor(seconds / 86400);
-        const hours = Math.floor((seconds % 86400) / 3600);
-        return `${days}d ${hours}h`;
-    } else if (seconds < 31536000) {
-        const months = Math.floor(seconds / 2592000);
-        const days = Math.floor((seconds % 2592000) / 86400);
-        return `${months}mo ${days}d`;
-    } else {
-        const years = Math.floor(seconds / 31536000);
-        const months = Math.floor((seconds % 31536000) / 2592000);
-        return `${years}y ${months}mo`;
+// Format ETC time (00:02:44 or 5h 23m)
+function formatETC(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    
+    if (totalSeconds < 1) return '< 1s';
+    if (totalSeconds < 60) return totalSeconds + 's';
+    
+    const s = totalSeconds % 60;
+    const m = Math.floor(totalSeconds / 60) % 60;
+    const h = Math.floor(totalSeconds / 3600) % 24;
+    const d = Math.floor(totalSeconds / 86400) % 7;
+    const w = Math.floor(totalSeconds / 604800) % 4;
+    const mo = Math.floor(totalSeconds / 2592000) % 12;
+    const y = Math.floor(totalSeconds / 31536000);
+    
+    // Return formatted based on scale
+    if (y > 0) return mo > 0 ? y + 'y ' + mo + 'mo' : y + ' year' + (y > 1 ? 's' : '');
+    if (mo > 0) return w > 0 ? mo + 'mo ' + w + 'w' : mo + ' month' + (mo > 1 ? 's' : '');
+    if (w > 0) return d > 0 ? w + 'w ' + d + 'd' : w + ' week' + (w > 1 ? 's' : '');
+    if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + ' day' + (d > 1 ? 's' : '');
+    if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + ' hour' + (h > 1 ? 's' : '');
+    if (m > 0) return s > 0 ? m + 'm ' + s + 's' : m + ' min';
+    return s + 's';
+}
+
+// Show toast notification
+function showToast(msg) {
+    if (toastText) toastText.textContent = msg;
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(function() {
+            toast.classList.remove('show');
+        }, 2500);
     }
 }
 
-// ========================
-// Statistics
-// ========================
-function updateStats() {
-    // Total count
-    statTotal.textContent = counter;
-    
-    // Time elapsed
-    if (startTime) {
-        const elapsed = Date.now() - startTime;
-        const minutes = Math.floor(elapsed / 60000);
-        const seconds = Math.floor((elapsed % 60000) / 1000);
-        statTime.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
-        // Speed (per minute)
-        const speed = counter > 0 ? Math.round((counter / (elapsed / 60000))) : 0;
-        statSpeed.textContent = speed;
-        
-        // ETC (Estimated Time to Completion)
-        if (counter > 0 && counter < target) {
-            const remaining = target - counter;
-            const avgTimePerCount = elapsed / counter;
-            const etcMs = avgTimePerCount * remaining;
-            const etcSeconds = Math.floor(etcMs / 1000);
-            
-            if (statEtc) {
-                statEtc.textContent = formatTime(etcSeconds);
-            }
-        } else if (counter >= target) {
-            if (statEtc) {
-                statEtc.textContent = 'Done!';
-            }
-        } else {
-            if (statEtc) {
-                statEtc.textContent = '--';
-            }
-        }
-    } else {
-        statTime.textContent = '00:00';
-        statSpeed.textContent = '0';
-        if (statEtc) {
-            statEtc.textContent = '--';
-        }
-    }
-    
-    // Sessions count
-    const sessions = JSON.parse(localStorage.getItem('tasbihSessions') || '[]');
-    statSessions.textContent = sessions.length;
-}
-
-// ========================
-// Session Management
-// ========================
-function saveSession() {
-    if (counter === 0) {
-        showToast('⚠️ No data to save');
-        return;
-    }
-    
-    const sessions = JSON.parse(localStorage.getItem('tasbihSessions') || '[]');
-    
-    const session = {
-        id: Date.now(),
-        dhikr: currentDhikr,
-        count: counter,
+// ============================================
+// LOCAL STORAGE (PERSISTENT DATA)
+// ============================================
+function saveData() {
+    const data = {
+        counter: counter,
         target: target,
-        duration: startTime ? Date.now() - startTime : 0,
-        date: new Date().toISOString(),
-        completed: counter >= target
+        firstCountTime: firstCountTime,
+        timestamps: timestamps,
+        saved: Date.now()
     };
-    
-    sessions.unshift(session);
-    
-    // Keep only last 50 sessions
-    if (sessions.length > 50) {
-        sessions.pop();
-    }
-    
-    localStorage.setItem('tasbihSessions', JSON.stringify(sessions));
-    
-    showToast('✅ Session saved');
-    vibrate(100);
-    
-    updateStats();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-function loadSessions() {
-    const sessions = JSON.parse(localStorage.getItem('tasbihSessions') || '[]');
-    updateStats();
-    return sessions;
-}
-
-// ========================
-// Menu & Modals
-// ========================
-menuBtn.addEventListener('click', () => {
-    sideMenu.classList.add('active');
-    overlay.classList.add('active');
-});
-
-closeBtn.addEventListener('click', () => {
-    sideMenu.classList.remove('active');
-    overlay.classList.remove('active');
-});
-
-overlay.addEventListener('click', () => {
-    sideMenu.classList.remove('active');
-    overlay.classList.remove('active');
-    closeAllModals();
-});
-
-function closeAllModals() {
-    dhikrModal.classList.remove('active');
-    historyModal.classList.remove('active');
-    settingsModal.classList.remove('active');
-}
-
-// Dhikr Modal
-dhikrBtn.addEventListener('click', () => {
-    sideMenu.classList.remove('active');
-    dhikrModal.classList.add('active');
-    overlay.classList.add('active');
-});
-
-dhikrClose.addEventListener('click', () => {
-    dhikrModal.classList.remove('active');
-    overlay.classList.remove('active');
-});
-
-document.querySelectorAll('.dhikr-item').forEach(item => {
-    item.addEventListener('click', () => {
-        document.querySelectorAll('.dhikr-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        
-        currentDhikr = item.dataset.dhikr;
-        saveCounter();
-        
-        dhikrModal.classList.remove('active');
-        overlay.classList.remove('active');
-        
-        showToast(`✨ ${currentDhikr} selected`);
-    });
-});
-
-// History Modal
-historyBtn.addEventListener('click', () => {
-    sideMenu.classList.remove('active');
-    displayHistory();
-    historyModal.classList.add('active');
-    overlay.classList.add('active');
-});
-
-historyClose.addEventListener('click', () => {
-    historyModal.classList.remove('active');
-    overlay.classList.remove('active');
-});
-
-function displayHistory() {
-    const sessions = loadSessions();
-    const historyList = document.getElementById('historyList');
-    
-    if (sessions.length === 0) {
-        historyList.innerHTML = '<div class="history-empty">No saved sessions yet</div>';
-        return;
-    }
-    
-    historyList.innerHTML = sessions.map(session => {
-        const date = new Date(session.date);
-        const duration = Math.floor(session.duration / 1000);
-        const minutes = Math.floor(duration / 60);
-        const seconds = duration % 60;
-        
-        return `
-            <div class="history-item">
-                <div class="history-dhikr">${session.dhikr} ${session.completed ? '✅' : ''}</div>
-                <div class="history-stats">${session.count}/${session.target} • ${minutes}m ${seconds}s</div>
-                <div class="history-date">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
-            </div>
-        `;
-    }).join('');
-}
-
-// Settings Modal
-settingsBtn.addEventListener('click', () => {
-    sideMenu.classList.remove('active');
-    settingsModal.classList.add('active');
-    overlay.classList.add('active');
-});
-
-settingsClose.addEventListener('click', () => {
-    settingsModal.classList.remove('active');
-    overlay.classList.remove('active');
-});
-
-vibrationToggle.addEventListener('change', (e) => {
-    settings.vibration = e.target.checked;
-    saveSettings();
-    if (settings.vibration) vibrate(50);
-});
-
-soundToggle.addEventListener('change', (e) => {
-    settings.sound = e.target.checked;
-    saveSettings();
-    if (settings.sound) playSound();
-});
-
-darkModeToggle.addEventListener('change', (e) => {
-    settings.darkMode = e.target.checked;
-    saveSettings();
-    
-    if (settings.darkMode) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
-    }
-    
-    showToast(settings.darkMode ? '🌙 Dark mode ON' : '☀️ Light mode ON');
-});
-
-clearDataBtn.addEventListener('click', () => {
-    if (confirm('Clear all data? This cannot be undone.')) {
-        localStorage.clear();
-        location.reload();
-    }
-});
-
-// ========================
-// Vibration & Sound
-// ========================
-function vibrate(duration = 30) {
-    if (settings.vibration && 'vibrate' in navigator) {
-        navigator.vibrate(duration);
-    }
-}
-
-function playSound() {
-    if (!settings.sound) return;
-    
+function loadData() {
     try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.08);
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            counter = data.counter || 0;
+            target = data.target || 33;
+            firstCountTime = data.firstCountTime || null;
+            timestamps = data.timestamps || [];
+            
+            if (targetValue) targetValue.textContent = target;
+            
+            // Update active target chip
+            document.querySelectorAll('.target-chip').forEach(function(chip) {
+                if (parseInt(chip.dataset.target) === target) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+            
+            console.log('📂 Data loaded:', { counter, target });
+        }
     } catch (e) {
-        // Sound not supported
+        console.error('❌ Load error:', e);
     }
 }
 
-// ========================
-// Toast Notification
-// ========================
-function showToast(message, duration = 2500) {
-    toast.textContent = message;
-    toast.classList.add('show');
+// Save before unload
+window.addEventListener('beforeunload', saveData);
+
+// Save periodically (every 30 seconds)
+setInterval(function() {
+    if (counter > 0) {
+        saveData();
+    }
+}, 30000);
+
+// ============================================
+// PWA INSTALL PROMPTS
+// ============================================
+let deferredPrompt;
+
+// Check if already installed
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('✅ App is installed');
+} else {
+    // iOS detection
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, duration);
+    if (isIOS && !localStorage.getItem('iosPromptDismissed')) {
+        setTimeout(function() {
+            const iosPrompt = document.getElementById('iosPrompt');
+            if (iosPrompt) {
+                iosPrompt.classList.add('show');
+                
+                const closeBtn = document.getElementById('iosPromptClose');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        iosPrompt.classList.remove('show');
+                        localStorage.setItem('iosPromptDismissed', 'true');
+                    });
+                }
+            }
+        }, 5000);
+    }
 }
 
-// ========================
-// Prevent Gestures
-// ========================
-document.addEventListener('touchend', (event) => {
-    const now = Date.now();
-    if (window.lastTouchEnd && now - window.lastTouchEnd <= 300) {
-        event.preventDefault();
+// Android PWA install
+window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    if (!localStorage.getItem('androidPromptDismissed')) {
+        setTimeout(function() {
+            const androidPrompt = document.getElementById('androidPrompt');
+            if (androidPrompt) {
+                androidPrompt.classList.add('show');
+                
+                const installBtn = document.getElementById('androidInstallBtn');
+                if (installBtn) {
+                    installBtn.addEventListener('click', async function() {
+                        androidPrompt.classList.remove('show');
+                        deferredPrompt.prompt();
+                        const result = await deferredPrompt.userChoice;
+                        console.log('Install outcome:', result.outcome);
+                        deferredPrompt = null;
+                    });
+                }
+                
+                const closeBtn = document.getElementById('androidPromptClose');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        androidPrompt.classList.remove('show');
+                        localStorage.setItem('androidPromptDismissed', 'true');
+                    });
+                }
+            }
+        }, 5000);
     }
-    window.lastTouchEnd = now;
-}, false);
+});
 
-document.addEventListener('contextmenu', (e) => e.preventDefault());
-document.addEventListener('gesturestart', (e) => e.preventDefault());
-document.addEventListener('gesturechange', (e) => e.preventDefault());
-document.addEventListener('gestureend', (e) => e.preventDefault());
+window.addEventListener('appinstalled', function() {
+    console.log('✅ PWA installed successfully');
+    showToast('App installed! ✅');
+});
 
-// ========================
-// Service Worker
-// ========================
+// ============================================
+// SERVICE WORKER
+// ============================================
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('✅ Service Worker registered'))
-        .catch(err => console.log('❌ SW registration failed:', err));
+        .then(function(reg) {
+            console.log('✅ Service Worker registered:', reg.scope);
+        })
+        .catch(function(err) {
+            console.error('❌ SW registration failed:', err);
+        });
 }
+
+// ============================================
+// KEYBOARD SHORTCUTS
+// ============================================
+document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space') {
+        e.preventDefault();
+        if (plusBtn) plusBtn.click();
+    } else if (e.code === 'Backspace') {
+        e.preventDefault();
+        if (minusBtn) minusBtn.click();
+    } else if (e.code === 'KeyR' && e.ctrlKey) {
+        e.preventDefault();
+        if (resetBtn) resetBtn.click();
+    }
+});
+
+// ============================================
+// PREVENT CONTEXT MENU
+// ============================================
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// ============================================
+// VISIBILITY CHANGE (Save when tab hidden)
+// ============================================
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden && counter > 0) {
+        saveData();
+        console.log('💾 Data saved (tab hidden)');
+    }
+});
+
+// ============================================
+// END OF SCRIPT - V9.1 COMPLETE 🚀
+// ============================================
+console.log('✅ All event listeners attached');
+console.log('🔥 Flagship features: TIME (AM/PM) & ETC working perfectly');
+
+// End of DOMContentLoaded
+});
