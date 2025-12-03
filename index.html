@@ -8,8 +8,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tasbih">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <title>Tasbih Counter v9.1.1</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/C1PqD52X/image.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/C1PqD52X/image.png">
+    
+    <title>Tasbih Counter</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,17 +30,11 @@
     <!-- Main Container -->
     <div class="app-container">
         
-        <!-- Header -->
-        <header class="header">
-            <h1 class="app-title">TASBIH</h1>
-            <div class="subtitle">Digital Counter v9.1.1</div>
-        </header>
-        
         <!-- Counter Section -->
         <div class="counter-section">
             
             <!-- Progress Ring -->
-            <svg class="progress-ring" width="340" height="340">
+            <svg class="progress-ring" width="280" height="280" viewBox="0 0 280 280">
                 <defs>
                     <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" style="stop-color:#00ff88;stop-opacity:1" />
@@ -50,8 +48,8 @@
                         </feMerge>
                     </filter>
                 </defs>
-                ircle class="progress-ring-bg" cx="170" cy="170" r="155" />
-                ircle class="progress-ring-fill" id="progressRing" cx="170" cy="170" r="155" />
+                ircle class="progress-ring-bg" cx="140" cy="140" r="128" />
+                ircle class="progress-ring-fill" id="progressRing" cx="140" cy="140" r="128" />
             </svg>
             
             <!-- Rolling Counter -->
@@ -153,7 +151,7 @@
                 <div class="btn-glow glow-red"></div>
                 <div class="btn-ripple"></div>
                 <div class="btn-content">
-                    <svg width="24" height="24" viewBox="0 0 24 24">
+                    <svg width="22" height="22" viewBox="0 0 24 24">
                         <line x1="6" y1="12" x2="18" y2="12" stroke="white" stroke-width="3" stroke-linecap="round"/>
                     </svg>
                 </div>
@@ -163,7 +161,7 @@
                 <div class="btn-glow glow-green"></div>
                 <div class="btn-ripple"></div>
                 <div class="btn-content">
-                    <svg width="28" height="28" viewBox="0 0 28 28">
+                    <svg width="26" height="26" viewBox="0 0 28 28">
                         <line x1="14" y1="6" x2="14" y2="22" stroke="white" stroke-width="3" stroke-linecap="round"/>
                         <line x1="6" y1="14" x2="22" y2="14" stroke="white" stroke-width="3" stroke-linecap="round"/>
                     </svg>
@@ -198,16 +196,22 @@
             
         </div>
         
+        <!-- Made by Footer -->
+        <div class="footer-credit">
+            <span>Made by</span>
+            <img src="https://i.postimg.cc/mkdWTft8/Untitled-design-(8).png" alt="AL Software" class="credit-logo">
+        </div>
+        
         <!-- FAB Buttons -->
         <div class="fab-group">
             <button class="fab" id="resetBtn" title="Reset">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
                     <path d="M21 3v5h-5"/>
                 </svg>
             </button>
             <button class="fab" id="saveBtn" title="Save">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                     <polyline points="17 21 17 13 7 13 7 21"/>
                     <polyline points="7 3 7 8 15 8"/>
@@ -222,7 +226,7 @@
         <div class="popup-backdrop"></div>
         <div class="popup-card">
             <div class="popup-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2">
                     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
                     <path d="M21 3v5h-5"/>
                 </svg>
@@ -238,7 +242,7 @@
     
     <!-- Toast Notification -->
     <div class="toast" id="toast">
-        <svg class="toast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"/>
         </svg>
         <span class="toast-text" id="toastText">Session saved!</span>
@@ -247,7 +251,7 @@
     <!-- iOS Install Prompt -->
     <div class="install-prompt ios-prompt" id="iosPrompt">
         <div class="prompt-content">
-            <svg class="prompt-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <svg class="prompt-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M12 16V4M12 4L8 8M12 4L16 8" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
                 <path d="M4 17V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V17" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
             </svg>
@@ -262,7 +266,7 @@
     <!-- Android Install Prompt -->
     <div class="install-prompt android-prompt" id="androidPrompt">
         <div class="prompt-content">
-            <svg class="prompt-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <svg class="prompt-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M12 16V4M12 4L8 8M12 4L16 8" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
                 <path d="M4 17V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V17" stroke="#00ff88" stroke-width="2" stroke-linecap="round"/>
             </svg>
